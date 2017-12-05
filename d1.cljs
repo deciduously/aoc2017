@@ -1,0 +1,55 @@
+(ns d1.core
+  (:require [cljs.test :refer-macros [deftest is run-tests]]
+            [planck.core :refer [slurp]]
+            [planck.io :refer [file]]))
+
+;; IMPLEMENTATION
+
+(defn go [full coll pred acc]
+  "Perform the recursion"
+  (let [[x & xs] coll]
+    (cond
+      (empty? coll) acc
+      (pred full (concat coll full)) (go full xs pred (+ x acc))
+      :else (go full xs pred acc))))
+
+(defn part1 [full coll]
+  "Is the next one the same?"
+  (let [[x y] coll] (= x y)))
+
+(defn part2 [full coll]
+  "Is the halfway around one the same?"
+  (= (first coll) (nth coll (quot (count full) 2))))
+
+(defn sum-if [input pred]
+  "Sum of all numbers that match their buddy according to pred"
+  (go input input pred 0))
+
+;; TESTS
+
+(deftest part1-sample
+  (is (= (sum-if [1 1 2 2] part1) 3))
+  (is (= (sum-if [1 1 1 1] part1) 4))
+  (is (= (sum-if [1 2 3 4] part1) 0))
+  (is (= (sum-if [9 1 2 1 2 1 2 9] part1) 9)))
+
+(deftest part2-sample
+  (is (= (sum-if [1 2 1 2] part2) 6))
+  (is (= (sum-if [1 2 2 1] part2) 0))
+  (is (= (sum-if [1 2 3 4 2 5] part2) 4))
+  (is (= (sum-if [1 2 3 1 2 3] part2) 12))
+  (is (= (sum-if [1 2 1 3 1 4 1 5] part2) 4)))
+
+;; RUN
+
+(defn -main []
+  (run-tests)
+  (let [p (->> "d1.txt"
+               (file)
+               (slurp)
+               (map js/parseInt)
+               (remove js/isNaN))]
+    (println (str "Part 1 output: " (sum-if p part1) "\n"
+                  "Part 2 output: " (sum-if p part2) "\n"))))
+
+(set! *main-cli-fn* -main)
