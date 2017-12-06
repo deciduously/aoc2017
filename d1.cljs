@@ -13,7 +13,7 @@
       (pred full (concat coll full)) (go full xs pred (+ x acc))
       :else (go full xs pred acc))))
 
-(defn part1 [full coll]
+(defn part1 [_ coll]
   "Is the next one the same?"
   (let [[x y] coll] (= x y)))
 
