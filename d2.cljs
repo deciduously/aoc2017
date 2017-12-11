@@ -6,23 +6,26 @@
 
 ;; IMPLEMENTATION
 
-(defn checksum [s f]
+(defn checksum
   "Adds up result of f for each row"
-    (->> (split s "\n")
-         (map #(split % "\t"))
-         (map #(let [xs (map js/parseInt %)] (f xs)))
-         (reduce +)))
+  [s f]
+  (->> (split s "\n")
+       (map #(split % "\t"))
+       (map #(let [xs (map js/parseInt %)] (f xs)))
+       (reduce +)))
 
-(defn part1 [xs]
+(defn part1
   "Difference between the min and the max"
+  [xs]
   (- (reduce max xs) (reduce min xs)))
 
-(defn part2 [xs]
+(defn part2
   "Only whole number quotient"
-    (->> (for [x xs y xs :when (not (= x y))] [x y])
-         (filter #(= 0 (mod (first %) (second %))))
-         (map #(/ (first %) (second %)))
-         (reduce +)))
+  [xs]
+  (->> (for [x xs y xs :when (not (= x y))] [x y])
+       (filter #(= 0 (mod (first %) (second %))))
+       (map #(/ (first %) (second %)))
+       (reduce +)))
 
 ;; TESTS
 
