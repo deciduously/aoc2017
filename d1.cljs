@@ -5,29 +5,24 @@
 
 ;; IMPLEMENTATION
 
-(defn go 
-  "Perform the recursion"
-  [full coll pred acc]
-  (let [[x & xs] coll]
-    (cond
-      (empty? coll) acc
-      (pred full (concat coll full)) (go full xs pred (+ x acc))
-      :else (go full xs pred acc))))
-
-(defn part1 
+(defn part1
   "Is the next one the same?"
   [_ coll]
   (let [[x y] coll] (= x y)))
 
-(defn part2 
+(defn part2
   "Is the halfway around one the same?"
   [full coll]
   (= (first coll) (nth coll (quot (count full) 2))))
 
-(defn sum-if 
+(defn sum-if
   "Sum of all numbers that match their buddy according to pred"
   [input pred]
-  (go input input pred 0))
+  (loop [[x & xs :as coll] input acc 0]
+    (cond
+      (empty? coll) acc
+      (pred input (concat coll input)) (recur xs (+ x acc))
+      :else (recur xs acc))))
 
 ;; TESTS
 
