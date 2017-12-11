@@ -19,10 +19,7 @@
   "Sum of all numbers that match their buddy according to pred"
   [input pred]
   (loop [[x & xs :as coll] input acc 0]
-    (cond
-      (empty? coll) acc
-      (pred input (concat coll input)) (recur xs (+ x acc))
-      :else (recur xs acc))))
+    (if (empty? coll) acc (recur xs (if (pred input (concat coll input)) (+ x acc) acc)))))
 
 ;; TESTS
 
