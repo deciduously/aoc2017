@@ -6,38 +6,38 @@
 
 ;; IMPLEMENTATION
 
-(def row-sizes (->> (iterate inc 0) (map #(inc (* 2 %))) (map #(.pow js/Math % 2)))) ;[3x3,5x5,7x7,...]
+(def part1 (->> (iterate inc 0) (map #(inc (* 2 %))) (map #(.pow js/Math % 2)))) ;[3x3,5x5,7x7,...]
 
 (defn layer
   "Returns how many layers out x is in coll"
-  [n]
-  (loop [[x & xs] row-sizes acc 0]
+  [fill n]
+  (loop [[x & xs] fill acc 0]
     (if (<= n x) acc (recur xs (inc acc)))))
 
 (defn data-carry
   "Manhattan distance of x to center of spiral grid"
-  [x]
+  [fill x]
   (if (< 1 x)
-    (let [l (layer x)
-          ;; centers contains the midpoint of each edge of the layer
-          centers (range (- (nth row-sizes l) l) (inc (nth row-sizes (dec l))) (- (* 2 l)))
-          offset (reduce min (map #(.abs js/Math (- x %)) centers))]
-      (+ l offset))
+    (let [l (layer fill x)]
+      (->> (range (- (nth fill l) l) (inc (nth fill (dec l))) (- (* 2 l))) ;; midpoints of each edge of the layer
+           (map #(.abs js/Math (- x %)))
+           (reduce min)
+           (+ l))) ;; final total is distance from closest midpoint in the row + total rows
     0))
 
 ;; TESTS
 
 (deftest sample1
-  (is (= (data-carry 1) 0))
-  (is (= (data-carry 12) 3))
-  (is (= (data-carry 23) 2))
-  (is (= (data-carry 1024) 31)))
+  (is (= (data-carry part1 1) 0))
+  (is (= (data-carry part1 12) 3))
+  (is (= (data-carry part1 23) 2))
+  (is (= (data-carry part1 1024) 31)))
 
 ;; RUN
 
 (defn -main [& args]
   (run-tests)
-  (println (str "Part 1 output: " (data-carry 312051))))
+  (println (str "Part 1 output: " (data-carry part1 312051))))
 
 (set! *main-cli-fn* -main)
 
