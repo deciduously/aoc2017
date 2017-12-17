@@ -1,12 +1,8 @@
 #!/usr/bin/env planck
 (ns d3.core
-  (:require [cljs.test :refer-macros [deftest is run-tests]]
-            [planck.core :refer [slurp]]
-            [planck.io :refer [file]]))
+  (:require [cljs.test :refer-macros [deftest is run-tests]]))
 
 ;; IMPLEMENTATION
-
-;; PART 1
 
 ;; [3x3,5x5,7x7,...]
 (def layer-sizes (->> (iterate inc 0)
@@ -18,6 +14,8 @@
   [n]
   (loop [[x & xs] layer-sizes acc 0]
     (if (<= n x) acc (recur xs (inc acc)))))
+
+;; PART 1
 
 (defn part1
   "Manhattan distance of x to center of spiral grid"
@@ -35,7 +33,7 @@
 (defn cell [idx xcoord ycoord bearing value] {:n idx :x xcoord :y ycoord :b bearing :v value})
 
 (defn coords
-  "next cell"
+  "Next cell in cells direction"
   [c]
   (let [b (:b c)]
     (cond
@@ -45,7 +43,7 @@
       (= b "down") (update-in c [:y] dec))))
 
 (defn neighbor-sum
-  "Sum the v of the neighboring cells"
+  "Sum the vs of the neighboring cells of the last cell in g"
   [g]
   (let [c (first g)
         b (:b (second g)) ; penultimate
@@ -71,10 +69,7 @@
       (cons (cell 2 1 0 "up" 1) (list g)) ; the below needs a layer higher than 0, so explicitly define that case
       (let [{:keys [x y b v]} c
             last-layer-size (if (> l 1) (nth layer-sizes (dec l)) 1)
-            turns (cons (+ 1 last-layer-size) ; we turn at the lowest in the layer, and each corner
-                        (rest (range (nth layer-sizes l)
-                                     last-layer-size
-                                     (- (* 2 l)))))
+            turns (cons (+ 1 last-layer-size) (rest (range (nth layer-sizes l) last-layer-size (- (* 2 l))))) ; turn at lowest in layer, and each corner
             b' (if (empty? (filter #(= % (inc n)) turns)) b (cond
                                                               (= b "right") "up"
                                                               (= b "left") "down"
