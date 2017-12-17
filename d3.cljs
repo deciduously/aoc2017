@@ -9,7 +9,7 @@
                       (map #(.pow js/Math % 2))))
 
 (defn layer
-  "Returns how many layers out x is in coll"
+  "Returns how many layers out n is in coll"
   [n]
   (loop [[x & xs] layer-sizes acc 0]
     (if (<= n x) acc (recur xs (inc acc)))))
@@ -98,7 +98,7 @@
 
 ;; RUN
 
-(defn -main [& args]
+(defn -main []
   (let [puzzle 312051]
     (run-tests)
     (println (str "Part 1 output: " (part1 puzzle)))
