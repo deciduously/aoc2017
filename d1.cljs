@@ -1,7 +1,6 @@
 (ns d1.core
   (:require [cljs.test :refer-macros [deftest is run-tests]]
-            [planck.core :refer [slurp]]
-            [planck.io :refer [file]]))
+            [planck.core :refer [slurp]]))
 
 ;; IMPLEMENTATION
 
@@ -41,7 +40,6 @@
 (defn -main []
   (run-tests)
   (let [p (->> "d1.txt"
-               (file)
                (slurp)
                (map js/parseInt)
                (remove js/isNaN))]

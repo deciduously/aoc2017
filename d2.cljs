@@ -1,8 +1,7 @@
 (ns d2.core
   (:require [cljs.test :refer-macros [deftest is testing run-tests]]
             [clojure.string :refer [split]]
-            [planck.core :refer [slurp]]
-            [planck.io :refer [file]]))
+            [planck.core :refer [slurp]]))
 
 ;; IMPLEMENTATION
 
@@ -40,7 +39,7 @@
 
 (defn -main []
   (run-tests)
-  (let [puzzle (slurp (file "d2.txt"))]
+  (let [puzzle (slurp "d2.txt")]
     (println (str "Part 1 output: " (checksum puzzle part1)))
     (println (str "Part 1 output: " (checksum puzzle part2)))))
 
