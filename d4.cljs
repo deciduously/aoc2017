@@ -16,7 +16,7 @@
   (->> ws (filter #(= (sort w) (sort %))) count))
 
 (defn valid?
-  "True if contains no duplicate words"
+  "Check s for validity according to f"
   [f s]
   (let [words (split s " ")]
     (->> (map #(f % words) words)
