@@ -19,7 +19,7 @@
   (loop [[x & xs] layer-sizes acc 0]
     (if (<= n x) acc (recur xs (inc acc)))))
 
-(defn data-carry
+(defn part1
   "Manhattan distance of x to center of spiral grid"
   [x]
   (if (< 1 x)
@@ -32,10 +32,7 @@
 
 ;; PART 2
 
-;; This is incredibly slow
-
-; idx xcoord ycoord bearing value
-(defn cell [n x y b v] {:n n :x x :y y :b b :v v})
+(defn cell [idx xcoord ycoord bearing value] {:n idx :x xcoord :y ycoord :b bearing :v value})
 
 (defn coords
   "next cell"
@@ -47,59 +44,70 @@
       (= b "up") (update-in c [:y] inc)
       (= b "down") (update-in c [:y] dec))))
 
-;; you're adding just the inside rings of each, you might be able to do this easier
-(comment (defn neighbor-sum)
-  "Sums the neighbors of c in g"
-  [c]
-  (let [b (:b c)]
-    (cond
-      (= b "right") 1
-      (= b "left") 2
-      (= b "up") 3
-      (= b "down") 4)))
+(defn neighbor-sum
+  "Sum the v of the neighboring cells"
+  [g]
+  (let [c (first g)
+        b (:b (second g)) ; penultimate
+        {:keys [x y]} c
+        neighbors (cond
+                    (= b "right") (filter #(or (and (= (:y %) (inc y)) (or (= (:x %) x) (= (:x %) (inc x)) (= (:x %) (dec x))))
+                                               (and (= (:x %) (dec x)) (= (:y %) y))) g)
+                    (= b "left") (filter #(or (and (= (:y %) (dec y)) (or (= (:x %) x) (= (:x %) (dec x)) (= (:x %) (inc x))))
+                                              (and (= (:x %) (inc x)) (= (:y %) y))) g)
+                    (= b "up") (filter #(or (and (= (:x %) (dec x)) (or (= (:y %) y) (= (:y %) (inc y)) (= (:y %) (dec y))))
+                                            (and (= (:y %) (dec y)) (= (:x %) x))) g)
+                    (= b "down") (filter #(or (and (= (:x %) (inc x)) (or (= (:y %) y) (= (:y %) (inc y)) (= (:y %) (dec y))))
+                                              (and (= (:y %) (inc y))(= (:x %) x))) g))]
+    (->> neighbors (map :v) (reduce +))))
 
 (defn next-cell
-  "Returns the next cell, given the bearing"
-  [c]
-  (let [n (:n c)
-        l (layer n)]
+  "Returns a new grid with next cell added"
+  [g]
+  (let [c (first g)
+        n (:n c)
+        l (layer (inc n))]
     (if (= l 0)
-      (cell 2 1 0 "up" 2) ; the below needs a layer higher than 0, so explicitly define that case
-      (let [{:keys [x y b]} c
-            last-layer-size (nth layer-sizes (dec l))
-            turns (cons (+ 2 last-layer-size) ; we turn at the second each time
+      (cons (cell 2 1 0 "up" 1) (list g)) ; the below needs a layer higher than 0, so explicitly define that case
+      (let [{:keys [x y b v]} c
+            last-layer-size (if (> l 1) (nth layer-sizes (dec l)) 1)
+            turns (cons (+ 1 last-layer-size) ; we turn at the lowest in the layer, and each corner
                         (rest (range (nth layer-sizes l)
-                                     (if (> l 1) last-layer-size 1) ; gross - deal with layer 1 better
+                                     last-layer-size
                                      (- (* 2 l)))))
             b' (if (empty? (filter #(= % (inc n)) turns)) b (cond
                                                               (= b "right") "up"
                                                               (= b "left") "down"
                                                               (= b "up") "left"
-                                                              (= b "down") "right"))]
-        (update-in (coords (cell (inc n) x y b (inc n))) [:b] #(identity b'))))))
+                                                              (= b "down") "right"))
+            untotaled (cons (update-in (coords (cell (inc n) x y b v)) [:b] #(identity b')) g)] ; move the direction we were moving, THEN change bearing
+        (cons (update-in (first untotaled) [:v] #(neighbor-sum untotaled)) (rest untotaled)))))) ; and finally store the neighbor sum in the value
 
-(defn grid
-  "build the grid up to n"
+(defn part2
+  "build the grid until value exceeds n, return that value"
   [n]
-  (take n (iterate #(conj % (next-cell %)) (cell 1 0 0 "right" 1))))
-
-;; TODO look for pretty-print in commit history - or write it.  you need to get this into a grid by values to get the neighbors.
-;; alternatively, filter through the grid you've got with an (or) to capture all around?
+  (->> (cell 1 0 0 "right" 1)
+       (iterate next-cell)
+       (take-while #(<= (:v (first %)) n))
+       (last)
+       (next-cell)
+       (first)
+       (:v)))
 
 ;; TESTS
 
 (deftest sample1
-  (is (= (data-carry 1) 0))
-  (is (= (data-carry 12) 3))
-  (is (= (data-carry 23) 2))
-  (is (= (data-carry 1024) 31)))
+  (is (= (part1 1) 0))
+  (is (= (part1 12) 3))
+  (is (= (part1 23) 2))
+  (is (= (part1 1024) 31)))
 
 ;; RUN
 
 (defn -main [& args]
   (let [puzzle 312051]
     (run-tests)
-    (println (str "Part 1 output: " (data-carry puzzle)))))
-;;(println (str "Part 2 output: " (accumulator part2 )))))
+    (println (str "Part 1 output: " (part1 puzzle)))
+    (println (str "Part 2 output: " (part2 puzzle)))))
 
 (set! *main-cli-fn* -main)
