@@ -77,11 +77,12 @@
             untotaled (cons (update-in (coords (cell (inc n) x y b)) [:b] #(identity b')) g)] ; move the direction we were moving, THEN change bearing
         (cons (update-in (first untotaled) [:v] #(neighbor-sum untotaled)) (rest untotaled)))))) ; and finally store the neighbor sum in the value
 
+(def grid (iterate next-cell (cell 1 0 0 "right")))
+
 (defn part2
   "build the grid until value exceeds n, return that value"
   [n]
-  (->> (cell 1 0 0 "right")
-       (iterate next-cell)
+  (->> grid
        (take-while #(<= (:v (first %)) n))
        (last)
        (next-cell)
