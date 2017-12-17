@@ -32,53 +32,59 @@
 
 ;; PART 2
 
-;;This is incredibly slooow - I think you can use the fact that you're only adding the inside edge
+;; This is incredibly slow
 
-(defn cell [n x y b] {:n n :x x :y y :b b})
-
-(defn turn-left
-  "get whats left from b"
-  [b]
-  (cond
-    (= b "right") "up"
-    (= b "left") "down"
-    (= b "up") "left"
-    (= b "down") "right"))
+; idx xcoord ycoord bearing value
+(defn cell [n x y b v] {:n n :x x :y y :b b :v v})
 
 (defn coords
   "next cell"
   [c]
-  (let [{:keys [n x y b]} c]
+  (let [b (:b c)]
     (cond
-      (= b "right") (cell n (inc x) y b)
-      (= b "left") (cell n (dec x) y b)
-      (= b "up") (cell n x (inc y) b)
-      (= b "down") (cell n x (dec y) b))))
+      (= b "right") (update-in c [:x] inc)
+      (= b "left") (update-in c [:x] dec)
+      (= b "up") (update-in c [:y] inc)
+      (= b "down") (update-in c [:y] dec))))
+
+;; you're adding just the inside rings of each, you might be able to do this easier
+(comment (defn neighbor-sum)
+  "Sums the neighbors of c in g"
+  [c]
+  (let [b (:b c)]
+    (cond
+      (= b "right") 1
+      (= b "left") 2
+      (= b "up") 3
+      (= b "down") 4)))
 
 (defn next-cell
   "Returns the next cell, given the bearing"
   [c]
-  (let [l (layer (:n c))]
+  (let [n (:n c)
+        l (layer n)]
     (if (= l 0)
-      (cell 2 1 0 "up") ; the below needs a layer higher than 0, so explicitly define that case
-      (let [{:keys [n x y b]} c
-            turns (cons (+ 2 (nth layer-sizes (dec l))) ; we turn at the second each time
+      (cell 2 1 0 "up" 2) ; the below needs a layer higher than 0, so explicitly define that case
+      (let [{:keys [x y b]} c
+            last-layer-size (nth layer-sizes (dec l))
+            turns (cons (+ 2 last-layer-size) ; we turn at the second each time
                         (rest (range (nth layer-sizes l)
-                                     (if (> l 1) (nth layer-sizes (dec l)) 1) ; gross - deal with layer 1 better
+                                     (if (> l 1) last-layer-size 1) ; gross - deal with layer 1 better
                                      (- (* 2 l)))))
-            b' (if (empty? (filter #(= % (inc n)) turns)) b (turn-left b))]
-        (update-in (coords (cell (inc n) x y b)) [:b] #(identity b'))))))
+            b' (if (empty? (filter #(= % (inc n)) turns)) b (cond
+                                                              (= b "right") "up"
+                                                              (= b "left") "down"
+                                                              (= b "up") "left"
+                                                              (= b "down") "right"))]
+        (update-in (coords (cell (inc n) x y b (inc n))) [:b] #(identity b'))))))
 
 (defn grid
   "build the grid up to n"
   [n]
-  (take n (iterate #(conj % (next-cell %)) (cell 1 0 0 "right"))))
+  (take n (iterate #(conj % (next-cell %)) (cell 1 0 0 "right" 1))))
 
-;;brain flash bafore bed - look at the neighbors function instead.  you're adding just the inside rings of each, you might be able to do this easier
-(defn neighbor-sum
-  "Sums the neighbors of c"
-  [c]
-  c)
+;; TODO look for pretty-print in commit history - or write it.  you need to get this into a grid by values to get the neighbors.
+;; alternatively, filter through the grid you've got with an (or) to capture all around?
 
 ;; TESTS
 
@@ -97,4 +103,3 @@
 ;;(println (str "Part 2 output: " (accumulator part2 )))))
 
 (set! *main-cli-fn* -main)
-
