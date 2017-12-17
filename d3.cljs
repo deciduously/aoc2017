@@ -1,4 +1,3 @@
-#!/usr/bin/env planck
 (ns d3.core
   (:require [cljs.test :refer-macros [deftest is run-tests]]))
 
