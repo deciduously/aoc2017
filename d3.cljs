@@ -29,7 +29,7 @@
 
 ;; PART 2
 
-(defn cell [idx xcoord ycoord bearing value] {:n idx :x xcoord :y ycoord :b bearing :v value})
+(defn cell [idx xcoord ycoord bearing] {:n idx :x xcoord :y ycoord :b bearing :v idx})
 
 (defn coords
   "Next cell in cells direction"
@@ -65,8 +65,8 @@
         n (:n c)
         l (layer (inc n))]
     (if (= l 0)
-      (cons (cell 2 1 0 "up" 1) (list g)) ; the below needs a layer higher than 0, so explicitly define that case
-      (let [{:keys [x y b v]} c
+      (cons (update-in (cell 2 1 0 "up") [:v] #(identity 1)) (list g)) ; fn expects g to be a list and layer to be at least 1, so explicitly define first iteration
+      (let [{:keys [x y b]} c
             last-layer-size (if (> l 1) (nth layer-sizes (dec l)) 1)
             turns (cons (+ 1 last-layer-size) (rest (range (nth layer-sizes l) last-layer-size (- (* 2 l))))) ; turn at lowest in layer, and each corner
             b' (if (empty? (filter #(= % (inc n)) turns)) b (cond
@@ -74,13 +74,13 @@
                                                               (= b "left") "down"
                                                               (= b "up") "left"
                                                               (= b "down") "right"))
-            untotaled (cons (update-in (coords (cell (inc n) x y b v)) [:b] #(identity b')) g)] ; move the direction we were moving, THEN change bearing
+            untotaled (cons (update-in (coords (cell (inc n) x y b)) [:b] #(identity b')) g)] ; move the direction we were moving, THEN change bearing
         (cons (update-in (first untotaled) [:v] #(neighbor-sum untotaled)) (rest untotaled)))))) ; and finally store the neighbor sum in the value
 
 (defn part2
   "build the grid until value exceeds n, return that value"
   [n]
-  (->> (cell 1 0 0 "right" 1)
+  (->> (cell 1 0 0 "right")
        (iterate next-cell)
        (take-while #(<= (:v (first %)) n))
        (last)
