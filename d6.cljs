@@ -7,6 +7,11 @@
 
 (def sample "0\t2\t7\t0\n")
 
+(defn parse-input
+  "Get list of numbers from string input"
+  [s]
+  (->> (split s "\t") (map js/parseInt)))
+
 (defn redist
   "Redistribute"
   [blocks]
@@ -22,24 +27,25 @@
 ; TODO see if you can find a way without leaning on loop/recur - some sort of take-while on an iterate redist would be nice
 (defn find-dup
   "Redistributes until we find a duplicate, returns how many iterations it took"
-  [s]
-  (let [blocks (->> (split s "\t") (map js/parseInt))]
-    (loop [coll (list blocks) acc 0]
-      (let [f (first coll)]
-        (if (some #{f} (rest coll))
-          acc
-          (recur (cons (redist f) coll) (inc acc)))))))
+  [blocks]
+  (loop [coll (list blocks) acc 0]
+    (let [curr (first coll)]
+      (if (some #{curr} (rest coll))
+        {:result acc :repeated curr}
+        (recur (cons (redist curr) coll) (inc acc))))))
 
 ;; TESTS
 
 (deftest sample1
-  (is (= (find-dup sample) 5)))
+  (is (= (:result (find-dup (parse-input sample))) 5)))
 
 ;; RUN
 
 (defn -main []
-  (let [puzzle (slurp "d6.txt")]
-    (run-tests)
-    (find-dup puzzle))) ; takes about 2 minutes on my machine
+  (run-tests)
+  (let [puzzle (parse-input (slurp "d6.txt"))
+        part1 (find-dup puzzle)] ; takes about 2 minutes on my machine
+    (println (str "Part 1: " (:result part1)))
+    (println (str "Part 2: " (:result (find-dup (:repeated part1)))))))
 
 (set! *main-cli-fn* -main)
